@@ -24,22 +24,23 @@ raphael/
         └── public/icons/    icônes PWA / iOS
 ```
 
-## Démarrage (développement)
+## Démarrage depuis un iPad (GitHub Codespaces)
+1. Dans Safari : github.com → dépôt **Knightbot-MD** → choisir la branche
+   `claude/raphael-personal-ai-assistant-ngpin9`.
+2. **Code** → onglet **Codespaces** → **Create codespace on …**
+   (la base PostgreSQL + pgvector et les dépendances s'installent seules, ~3–5 min).
+3. Dans le terminal du Codespace : `cd raphael && ./dev.sh`
+4. Onglet **Ports** → port **3000** → icône 🌐 pour ouvrir RAPHAËL.
+
+## Démarrage (ordinateur)
 ```bash
 # 1. Base de données
 docker compose up -d db
 
-# 2. API
-cd apps/api
-python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'
-cp .env.example .env
-.venv/bin/python -m scripts.migrate
-.venv/bin/uvicorn app.main:app --reload --port 8000
 
-# 3. Interface
-cd ../web
-npm install && cp .env.example .env.local
-npm run dev            # http://localhost:3000
+# 3. Installation + lancement (API port 8000, interface port 3000)
+./setup.sh
+./dev.sh               # http://localhost:3000
 ```
 
 ## Tests
