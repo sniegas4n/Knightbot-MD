@@ -37,8 +37,7 @@ raphael/
 # 1. Base de données
 docker compose up -d db
 
-
-# 3. Installation + lancement (API port 8000, interface port 3000)
+# 2. Installation + lancement (API port 8000, interface port 3000)
 ./setup.sh
 ./dev.sh               # http://localhost:3000
 ```
