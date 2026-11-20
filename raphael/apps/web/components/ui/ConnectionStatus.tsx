@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { fetchHealth, type Health } from "@/lib/api";
 
-type Conn = { kind: "checking" } | { kind: "online"; health: Health } | { kind: "offline" };
+export type Conn = { kind: "checking" } | { kind: "online"; health: Health } | { kind: "offline" };
 
 /** État de connexion réel : interroge /v1/health toutes les 15 s. */
 export function useConnection(): Conn {
@@ -30,6 +30,19 @@ export function useConnection(): Conn {
     };
   }, []);
   return conn;
+}
+
+const ConnectionContext = createContext<Conn | null>(null);
+
+/** Une seule sonde partagée par toute l'application. */
+export function ConnectionProvider({ children }: { children: React.ReactNode }) {
+  return <ConnectionContext.Provider value={useConnection()}>{children}</ConnectionContext.Provider>;
+}
+
+export function useSharedConnection(): Conn {
+  const c = useContext(ConnectionContext);
+  if (!c) throw new Error("useSharedConnection() hors de <ConnectionProvider>");
+  return c;
 }
 
 export function ConnectionStatus({ conn }: { conn: Conn }) {

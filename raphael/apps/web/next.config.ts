@@ -14,6 +14,8 @@ const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8000"
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Le badge de développement Next.js recouvrait l'entrée « Paramètres » du rail latéral.
+  devIndicators: false,
   // Le navigateur appelle /v1/* sur la même origine ; Next.js relaie vers l'API.
   // Une seule adresse à exposer (utile sur iPad / Codespaces) et cookies same-origin.
   async rewrites() {

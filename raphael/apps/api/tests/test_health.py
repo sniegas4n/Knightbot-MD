@@ -28,8 +28,8 @@ async def test_health_ok_with_migrated_database(test_dsn):
             body = (await c.get("/v1/health")).json()
         assert body == {
             "status": "ok",
-            "version": "0.1.0",
-            "database": {"connected": True, "pgvector": True, "schema_version": 1},
+            "version": "0.2.0",
+            "database": {"connected": True, "pgvector": True, "schema_version": 2},
         }
     finally:
         await db.disconnect()

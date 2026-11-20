@@ -5,7 +5,9 @@ import { STATE_META, type RaphaelState } from "@/lib/raphael-state";
 
 type Props = {
   state: RaphaelState;
+  /** Taille en px. Sans taille, le noyau occupe son conteneur (taille responsive via className). */
   size?: number;
+  className?: string;
   /** Amplitude vocale 0..1 (fournie par le moteur audio en Phase 4). */
   level?: number;
 };
@@ -19,7 +21,7 @@ const RING_SPEED: Record<RaphaelState, number> = {
 };
 
 /** Noyau animé : indicateur principal de l'état de Raphaël. */
-export function RaphaelCore({ state, size = 220, level = 0 }: Props) {
+export function RaphaelCore({ state, size, className = "", level = 0 }: Props) {
   const reduce = useReducedMotion();
   const { color, label } = STATE_META[state];
   const speed = reduce ? 0 : RING_SPEED[state];
@@ -36,8 +38,8 @@ export function RaphaelCore({ state, size = 220, level = 0 }: Props) {
     <div
       role="img"
       aria-label={`Noyau de Raphaël — ${label}`}
-      className="relative grid place-items-center"
-      style={{ width: size, height: size }}
+      className={`relative grid shrink-0 place-items-center ${className}`}
+      style={size ? { width: size, height: size } : undefined}
     >
       {/* Halo */}
       <motion.div

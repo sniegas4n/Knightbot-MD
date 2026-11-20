@@ -79,7 +79,7 @@ On peut ainsi faire évoluer ou remplacer un module sans reconstruire l'applicat
 | Module | Rôle | Phase |
 |---|---|---|
 | `health` | Sonde de vie + état base de données / pgvector | ✅ 1 |
-| `auth` | Inscription unique (propriétaire), connexion, sessions, appareils, passkeys | 🔜 2–3 |
+| `auth` | Inscription unique (propriétaire), connexion, sessions, appareils ✅ · passkeys 🔜 8 | ✅ 2 |
 | `conversation` | Orchestration LLM, prompt système de Raphaël, streaming, appels d'outils | 🔜 3 |
 | `voice` | WebSocket audio, VAD, STT/TTS en flux, interruption | 🔜 4 |
 | `memory` | Extraction de souvenirs, consolidation, recherche hybride (vecteur + texte) | 🔜 5 |

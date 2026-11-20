@@ -10,9 +10,8 @@ async def test_migrations_are_idempotent(test_dsn):
     assert await migrate(test_dsn) == []
 
 
-async def test_vector_search_and_user_deletion_cascade(test_dsn):
-    await migrate(test_dsn)
-    conn = await asyncpg.connect(test_dsn)
+async def test_vector_search_and_user_deletion_cascade(clean_db):
+    conn = await asyncpg.connect(clean_db)
     try:
         async with conn.transaction():
             uid = await conn.fetchval(

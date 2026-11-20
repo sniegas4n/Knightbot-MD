@@ -8,7 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import __version__
 from app.core import db
 from app.core.config import get_settings
+from app.core.request_meta import OriginCheckMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
+from app.modules.auth.ratelimit import FailureLimiter
+from app.modules.auth.router import router as auth_router
 from app.modules.health.router import router as health_router
 
 log = logging.getLogger("raphael")
@@ -35,6 +38,8 @@ def create_app() -> FastAPI:
         redoc_url=None,
         openapi_url=None if settings.is_production else "/openapi.json",
     )
+    app.state.login_limiter = FailureLimiter(settings.login_max_failures, settings.login_window_seconds)
+    app.add_middleware(OriginCheckMiddleware)
     app.add_middleware(SecurityHeadersMiddleware, hsts=settings.is_production)
     app.add_middleware(
         CORSMiddleware,
@@ -44,6 +49,7 @@ def create_app() -> FastAPI:
         allow_headers=["Content-Type"],
     )
     app.include_router(health_router, prefix="/v1")
+    app.include_router(auth_router, prefix="/v1")
     return app
 
 
