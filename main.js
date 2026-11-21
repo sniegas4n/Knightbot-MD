@@ -70,6 +70,7 @@ const { handleDemotionEvent } = require('./commands/demote');
 const viewOnceCommand = require('./commands/viewonce');
 const clearSessionCommand = require('./commands/clearsession');
 const { autoStatusCommand, handleStatusUpdate } = require('./commands/autostatus');
+const tiktokCommand = require('./commands/tiktok');
 
 // Global settings
 global.packname = settings.packname;
@@ -626,6 +627,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     });
                 }
                 break;
+            case userMessage.startsWith('.tiktokmp3') || userMessage.startsWith('.ttmp3') ||
+                 userMessage.startsWith('.tiktok') || userMessage === '.tt' || userMessage.startsWith('.tt '): {
+                // Use the original text: TikTok links are case-sensitive and userMessage is lowercased
+                const rawText = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
+                const audioOnly = userMessage.startsWith('.tiktokmp3') || userMessage.startsWith('.ttmp3');
+                await tiktokCommand(sock, chatId, message, rawText, audioOnly);
+                break;
+            }
             case userMessage === '.vv':
                 await viewOnceCommand(sock, chatId, message);
                 break;

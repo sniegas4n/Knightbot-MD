@@ -104,6 +104,8 @@ async function helpCommand(sock, chatId, channelLink) {
 🎯 *Downloader*:
 ║ ➤ .play <song_name>
 ║ ➤ .song <song_name>
+║ ➤ .tiktok <link>
+║ ➤ .tiktokmp3 <link>
 ╚═══════════════════╝
 
 Join our channel for updates:`;
