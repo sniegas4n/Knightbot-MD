@@ -118,16 +118,20 @@ function CharacterService:RefreshWalkSpeed(player: Player)
 		return
 	end
 
+	local stunned = character:GetAttribute("Stunned") == true
+
 	local speed = CharacterConfig.BaseWalkSpeed
 	if player:GetAttribute("IsSprinting") == true then
 		speed *= MovementConfig.Sprint.SpeedMultiplier
 	end
-	if character:GetAttribute("Stunned") == true then
+	if stunned then
 		speed = 0
 	end
 	-- Phase 3 : bonus d'Agilité, ralentissements (Œil du Temps), etc.
 
 	humanoid.WalkSpeed = speed
+	-- Étourdi = ni marche ni saut.
+	humanoid.JumpHeight = if stunned then 0 else CharacterConfig.JumpHeight
 end
 
 local function onCharacterAdded(player: Player, character: Model)

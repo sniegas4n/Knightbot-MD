@@ -64,20 +64,46 @@ end
 
 -- ── Sprint ────────────────────────────────────────────────────────────────
 
+-- true entre l'envoi d'une demande de sprint et l'arrêt du sprint. On ne
+-- peut pas se fier au seul attribut IsSprinting : il n'arrive qu'après un
+-- aller-retour réseau. Sans ce drapeau, un appui bref sur Shift (relâché
+-- avant la réponse du serveur) laissait le sprint actif indéfiniment.
+local sprintRequested = false
+
+local function isSprintActive(): boolean
+	return sprintRequested or isServerSprinting()
+end
+
 local function requestSprint(active: boolean)
-	if active == isServerSprinting() then
-		return
+	if active then
+		if isSprintActive() then
+			return
+		end
+		if (player:GetAttribute("Stamina") or 0) < SprintConfig.MinStaminaToStart then
+			return
+		end
+		sprintRequested = true
+		SprintRemote:FireServer(true)
+	else
+		if not isSprintActive() then
+			return
+		end
+		sprintRequested = false
+		SprintRemote:FireServer(false)
 	end
-	if active and (player:GetAttribute("Stamina") or 0) < SprintConfig.MinStaminaToStart then
-		return
-	end
-	SprintRemote:FireServer(active)
 end
 
 local function onSprintInput(isPressed: boolean, _inputObject: InputObject, mode: string)
 	if mode == "Toggle" then
+		-- En bascule, il n'y a pas de relâchement à rater : on se fie à
+		-- l'état du serveur (une demande refusée n'exige pas deux appuis).
 		if isPressed then
-			requestSprint(not isServerSprinting())
+			if isServerSprinting() then
+				requestSprint(false)
+			else
+				sprintRequested = false
+				requestSprint(true)
+			end
 		end
 	else
 		requestSprint(isPressed)
@@ -223,6 +249,7 @@ local function onCharacterAdded(character: Model)
 	characterMaid:Clean()
 	table.clear(animationTracks)
 	lastDodgeTime = -math.huge
+	sprintRequested = false
 
 	characterMaid:Give(character.AncestryChanged:Connect(function()
 		if not character.Parent then
@@ -243,6 +270,14 @@ function MovementController:Start()
 
 	InputController:BindAction("Sprint", onSprintInput)
 	InputController:BindAction("Dodge", onDodgeInput)
+
+	-- Le serveur a coupé le sprint (endurance à 0, étourdissement, mort) :
+	-- la demande en cours est terminée.
+	player:GetAttributeChangedSignal("IsSprinting"):Connect(function()
+		if not isServerSprinting() then
+			sprintRequested = false
+		end
+	end)
 
 	player.CharacterAdded:Connect(onCharacterAdded)
 	if player.Character then

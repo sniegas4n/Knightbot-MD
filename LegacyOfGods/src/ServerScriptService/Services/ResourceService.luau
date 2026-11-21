@@ -164,6 +164,11 @@ function ResourceService:Init(services)
 	-- CharacterService est initialisé après nous mais existe déjà dans la table.
 	if CharacterService then
 		CharacterService.CharacterSpawned:Connect(function(player)
+			-- Le signal tourne dans son propre thread : le joueur a pu partir
+			-- entre-temps, ne pas recréer son état.
+			if player.Parent ~= Players or not PlayerStateService:IsReady(player) then
+				return
+			end
 			ResourceService:Refill(player)
 		end)
 	end

@@ -17,6 +17,22 @@ MMORPG anime pour Roblox. Ce dossier contient le code source complet, organisé 
 2. Dans ce dossier : `rojo serve`
 3. Dans Studio : plugin Rojo → **Connect**. Tout est créé automatiquement, y compris les propriétés (`StreamingEnabled`, `CharacterAutoLoads`, Shift-Lock désactivé).
 
+Avec [Rokit](https://github.com/rojo-rbx/rokit), la version de Rojo est figée dans `rokit.toml` :
+
+```bash
+rokit install        # installe Rojo 7.4.4
+rojo plugin install  # installe le plugin Rojo correspondant dans Studio
+rojo serve           # puis Studio : plugin Rojo → Connect
+```
+
+### Tests automatisés par Claude (Studio MCP)
+
+Pour que Claude lance le jeu dans Studio, lise la sortie et corrige les erreurs, il doit tourner **sur votre ordinateur** (Studio ne fonctionne pas dans un conteneur Linux) :
+
+1. Ouvrir Claude Code sur votre machine dans ce dossier (application Claude Desktop, ou `claude remote-control` dans un terminal).
+2. Activer le serveur MCP de Roblox Studio : option MCP intégrée de Studio (réglages de l'Assistant) sur les versions récentes, sinon l'installateur `studio-rust-mcp-server` de Roblox (GitHub), qui ajoute le plugin et l'enregistre auprès de Claude.
+3. Vérifier avec `claude mcp list`, Studio ouvert et connecté à `rojo serve`.
+
 ### Option B — Installation manuelle dans Studio
 
 Règle de correspondance :

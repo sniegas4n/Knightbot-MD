@@ -448,11 +448,15 @@ end
 local function refreshExperience(instant: boolean?)
 	local level = attribute("Level", 1)
 	local experience = attribute("Experience", 0)
-	local required = attribute("ExperienceRequired", 0)
+	local required = player:GetAttribute("ExperienceRequired")
 
 	levelLabel.Text = tostring(level)
 
-	if required <= 0 then
+	if type(required) ~= "number" then
+		-- Profil pas encore répliqué : ne pas afficher « NIVEAU MAXIMUM ».
+		bars.Experience:Set(0, 1, true)
+		bars.Experience:SetText("Chargement…")
+	elseif required <= 0 then
 		bars.Experience:Set(1, 1, instant)
 		bars.Experience:SetText(("Niv. %d — NIVEAU MAXIMUM"):format(level))
 	else
@@ -473,7 +477,18 @@ local function refreshCurrency(id: string)
 	end
 end
 
+local bannerToken = 0
+local bannerFade: Tween?
+
 local function showLevelUp(text: string)
+	-- Un nouveau passage de niveau annule le fondu du précédent.
+	bannerToken += 1
+	local token = bannerToken
+	if bannerFade then
+		bannerFade:Cancel()
+		bannerFade = nil
+	end
+
 	levelBanner.Text = text
 	levelBanner.Visible = true
 	levelBanner.TextTransparency = 0
@@ -484,16 +499,20 @@ local function showLevelUp(text: string)
 	TweenService:Create(popScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 
 	task.delay(1.6, function()
+		if token ~= bannerToken then
+			return
+		end
 		local fade = TweenService:Create(
 			levelBanner,
 			TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
 			{ TextTransparency = 1, TextStrokeTransparency = 1 }
 		)
 		fade.Completed:Once(function(state)
-			if state == Enum.PlaybackState.Completed then
+			if state == Enum.PlaybackState.Completed and token == bannerToken then
 				levelBanner.Visible = false
 			end
 		end)
+		bannerFade = fade
 		fade:Play()
 	end)
 end
