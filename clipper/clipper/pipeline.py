@@ -21,7 +21,7 @@ def traiter_video(base: Base, cfg: Config, video_id: str, reselection: bool = Fa
     # 1. Ingestion
     fichier = Path(v["fichier"]) if v["fichier"] else None
     if not etape_atteinte(v["statut"], "telechargee") or not (fichier and fichier.exists()):
-        fichier, info = ingestion.telecharger(video_id, cfg)
+        fichier, info = ingestion.telecharger(video_id, cfg, v["url"])
         base.maj_video(video_id, fichier=str(fichier), statut=max_statut(v["statut"], "telechargee"),
                        **ingestion.metadonnees_utiles(info))
         v = base.video(video_id)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from clipper import ingestion, pipeline
 from clipper.config import ErreurConfig, charger_config
@@ -17,11 +18,14 @@ def cmd_add(base: Base, cfg, args) -> int:
     total_nouvelles = total_connues = 0
     for url in args.urls:
         try:
-            videos = ingestion.lister_videos(url, cfg)
+            if Path(url).expanduser().exists():
+                videos = [ingestion.importer_fichier(Path(url).expanduser().resolve(), cfg)]
+            else:
+                videos = ingestion.lister_videos(url, cfg)
         except ingestion.ErreurIngestion as exc:
             log.error("%s", exc)
             continue
-        nouvelles = sum(base.ajouter_video(v["id"], ingestion.url_video(v["id"]), v["titre"] or None) for v in videos)
+        nouvelles = sum(base.ajouter_video(v["id"], v["url"], v["titre"] or None) for v in videos)
         total_nouvelles += nouvelles
         total_connues += len(videos) - nouvelles
         log.info("%s : %d vidéo(s) trouvée(s), %d nouvelle(s).", url, len(videos), nouvelles)
@@ -82,7 +86,7 @@ def construire_parseur() -> argparse.ArgumentParser:
     p.add_argument("-v", "--verbeux", action="store_true", help="affiche les messages détaillés")
     sous = p.add_subparsers(dest="commande", required=True)
 
-    a = sous.add_parser("add", help="ajoute une vidéo, une playlist ou une chaîne")
+    a = sous.add_parser("add", help="ajoute une vidéo, une playlist, une chaîne, un lien direct ou un fichier local")
     a.add_argument("urls", nargs="+")
     a.set_defaults(fonction=cmd_add)
 

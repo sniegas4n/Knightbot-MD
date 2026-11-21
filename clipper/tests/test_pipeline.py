@@ -13,7 +13,7 @@ def faux_services(cfg, monkeypatch):
     appels = {"telechargement": 0, "deepgram": 0, "claude": 0}
     en_panne = set()
 
-    def faux_telecharger(video_id, cfg_):
+    def faux_telecharger(video_id, cfg_, url=None):
         if video_id in en_panne:
             raise ingestion.ErreurIngestion("vidéo indisponible")
         appels["telechargement"] += 1
@@ -113,3 +113,15 @@ def test_reselection_remplace_les_candidats(base, cfg, faux_services):
 ])
 def test_id_video_direct(url, attendu):
     assert ingestion.id_video_direct(url) == attendu
+
+
+def test_import_fichier_local_sans_reseau(base, cfg, tmp_path):
+    import subprocess
+    source = tmp_path / "Mon épisode.mp4"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440",
+                    "-t", "3", str(source)], check=True)
+    v = ingestion.importer_fichier(source, cfg)
+    assert ingestion.importer_fichier(source, cfg)["id"] == v["id"]  # même fichier = même identifiant
+    base.ajouter_video(v["id"], v["url"], v["titre"])
+    chemin, info = ingestion.telecharger(v["id"], cfg, v["url"])  # déjà présent : aucun téléchargement
+    assert chemin.exists() and info["title"] == "Mon épisode" and 2.5 < info["duration"] < 3.5
