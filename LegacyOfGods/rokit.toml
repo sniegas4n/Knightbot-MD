@@ -2,4 +2,4 @@
 # Versions figées : tout le monde utilise la même version de Rojo que le plugin Studio.
 
 [tools]
-rojo = "rojo-rbx/rojo@7.4.4"
+rojo = "rojo-rbx/rojo@7.7.1"

@@ -20,7 +20,7 @@ MMORPG anime pour Roblox. Ce dossier contient le code source complet, organisé 
 Avec [Rokit](https://github.com/rojo-rbx/rokit), la version de Rojo est figée dans `rokit.toml` :
 
 ```bash
-rokit install        # installe Rojo 7.4.4
+rokit install        # installe Rojo 7.7.1
 rojo plugin install  # installe le plugin Rojo correspondant dans Studio
 rojo serve           # puis Studio : plugin Rojo → Connect
 ```
