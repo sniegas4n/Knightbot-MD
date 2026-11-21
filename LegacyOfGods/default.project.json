@@ -1,0 +1,54 @@
+{
+  "name": "LegacyOfGods",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/ReplicatedStorage/Shared"
+      }
+    },
+
+    "ServerScriptService": {
+      "$path": "src/ServerScriptService"
+    },
+
+    "ServerStorage": {
+      "NPCs": { "$className": "Folder" },
+      "Bosses": { "$className": "Folder" },
+      "Weapons": { "$className": "Folder" },
+      "Maps": { "$className": "Folder" },
+      "DungeonAssets": { "$className": "Folder" }
+    },
+
+    "StarterPlayer": {
+      "$properties": {
+        "EnableMouseLockOption": false,
+        "CameraMaxZoomDistance": 32,
+        "CameraMinZoomDistance": 6
+      },
+      "StarterPlayerScripts": {
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    },
+
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
+      }
+    },
+
+    "Workspace": {
+      "$properties": {
+        "StreamingEnabled": true
+      },
+      "World": { "$className": "Folder" },
+      "NPCs": { "$className": "Folder" },
+      "Enemies": { "$className": "Folder" },
+      "Bosses": { "$className": "Folder" },
+      "Zones": { "$className": "Folder" },
+      "Dungeons": { "$className": "Folder" },
+      "SpawnLocations": { "$className": "Folder" }
+    }
+  }
+}
