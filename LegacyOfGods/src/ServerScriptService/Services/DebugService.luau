@@ -74,12 +74,17 @@ local function run(player: Player, command: any, value: any)
 		return
 	end
 
-	local handler = COMMANDS[string.lower(command)]
+	local name = string.lower(command)
+	local handler = COMMANDS[name]
 	if not handler then
 		Notifier.Send(player, "Commande inconnue : " .. command, "Warning")
 		return
 	end
 	handler(player, value)
+
+	-- Confirmation visible : permet de savoir si la commande est bien arrivée
+	-- au serveur (utile quand Studio intercepte une touche F).
+	Notifier.Send(player, ("[Debug] /%s %s"):format(name, value ~= nil and tostring(value) or ""), "Info")
 end
 
 function DebugService:Init(allServices)
