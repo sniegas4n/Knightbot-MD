@@ -1,0 +1,51 @@
+# Réglages de Clipper. Les clés secrètes vont dans .env, pas ici.
+# Les chemins relatifs partent du dossier qui contient ce fichier.
+
+# Dossier où Clipper range tout : vidéos, transcriptions, base SQLite, journal.
+dossier_donnees: data
+
+ingestion:
+  # Sélecteur de format yt-dlp : meilleure vidéo + meilleur audio, sinon le meilleur fichier unique.
+  format: "bv*+ba/b"
+  # Conteneur de fusion. mkv accepte tous les codecs (VP9, AV1, Opus...) sans réencodage.
+  conteneur: mkv
+  # Moteurs JavaScript que yt-dlp peut utiliser (YouTube en exige un). Il faut deno ou node installé.
+  js_runtimes: [deno, node]
+  # Nombre maximum de vidéos importées depuis une playlist ou une chaîne (0 = toutes).
+  limite_playlist: 0
+  # Si YouTube répond « Sign in to confirm you're not a bot » : utilise les cookies d'un navigateur
+  # où tu es connecté (firefox, chrome, edge, brave...), OU un fichier cookies.txt exporté.
+  # Laisse vide si tout fonctionne.
+  cookies_navigateur:
+  fichier_cookies:
+
+transcription:
+  # Fournisseur : seul « deepgram » est disponible en v1.
+  fournisseur: deepgram
+  # Langue parlée dans les vidéos (code ISO).
+  langue: fr
+  deepgram:
+    modele: nova-3
+    # Prix estimé en dollars par minute d'audio (transcription + locuteurs).
+    # Sert uniquement à l'estimation de « clipper status ». Vérifie sur deepgram.com/pricing.
+    prix_par_minute: 0.0065
+
+selection:
+  # Modèle Claude utilisé pour choisir les clips.
+  modele: claude-opus-5-5
+  # Effort de réflexion : low, medium, high, xhigh, max. « high » = bon compromis qualité / coût.
+  effort: high
+  # Nombre de clips candidats visés par vidéo.
+  nb_min: 5
+  nb_max: 15
+  # Durée visée d'un clip, en secondes (le recalage strict arrive en phase 2).
+  duree_min: 120
+  duree_max: 300
+  # Chevauchement maximum toléré entre deux clips (0.20 = 20 % du plus court).
+  chevauchement_max: 0.20
+  # Au-delà de cette durée, la transcription est envoyée en plusieurs blocs qui se recouvrent.
+  bloc_minutes: 120
+  recouvrement_minutes: 10
+  # Tarifs du modèle en dollars par million de jetons, pour l'estimation des coûts.
+  prix_entree_par_million: 4.0
+  prix_sortie_par_million: 20.0
