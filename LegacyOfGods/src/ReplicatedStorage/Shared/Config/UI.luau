@@ -46,4 +46,8 @@ return {
 
 	NotificationDuration = 3,
 	MaxNotifications = 4,
+
+	-- La liste des joueurs de Roblox (en haut à droite) recouvre la mini-carte.
+	-- Masquée tant qu'un menu « Joueurs » maison n'existe pas.
+	HidePlayerList = true,
 }

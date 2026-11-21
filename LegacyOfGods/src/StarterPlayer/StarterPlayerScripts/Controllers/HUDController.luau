@@ -253,7 +253,7 @@ local function buildRightColumn()
 		Name = "Currencies",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -12, 0, 184),
-		Size = UDim2.fromOffset(150, 84),
+		Size = UDim2.fromOffset(190, 84), -- assez large pour « Éclats divins »
 		Parent = gui,
 	})
 	Create("UIPadding", {
@@ -292,7 +292,7 @@ local function buildRightColumn()
 			Name = "Name",
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(20, 0),
-			Size = UDim2.new(0.55, -20, 1, 0),
+			Size = UDim2.new(0.62, -20, 1, 0),
 			Font = UI.FontRegular,
 			Text = definition.DisplayName,
 			TextColor3 = Colors.TextDim,
@@ -306,7 +306,7 @@ local function buildRightColumn()
 			BackgroundTransparency = 1,
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.fromScale(1, 0),
-			Size = UDim2.fromScale(0.45, 1),
+			Size = UDim2.fromScale(0.38, 1),
 			Font = UI.Font,
 			Text = "0",
 			TextColor3 = definition.Color,
@@ -601,6 +601,9 @@ end
 function HUDController:Start()
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+		if UI.HidePlayerList then
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+		end
 	end)
 
 	local playerGui = player:WaitForChild("PlayerGui")
