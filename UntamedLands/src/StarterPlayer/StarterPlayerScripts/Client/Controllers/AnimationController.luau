@@ -3,13 +3,19 @@
 	AnimationController
 	Location : StarterPlayer/StarterPlayerScripts/Client/Controllers/AnimationController
 	Purpose  : PROCEDURAL combat poses until real animations are authored.
-	           Offsets the C0 of three R15 joints (RightShoulder, LeftShoulder,
-	           Waist) through keyframed timelines: windup -> strike -> recover.
-	           Also holds Block and Stagger poses driven by the replicated
-	           "CombatState" attribute.
+	           Layers pose offsets onto three R15 joints (RightShoulder,
+	           LeftShoulder, Waist) through keyframed timelines:
+	           windup -> strike -> recover. Also holds Block and Stagger poses
+	           driven by the replicated "CombatState" attribute.
 	           Works for every tagged Combatant (players and NPCs). Changes are
 	           purely local to each client - every client animates everyone from
 	           the AttackStarted remote, so nothing here replicates.
+
+	Joint types: Roblox's Avatar Joint Upgrade replaces R15 Motor6Ds with
+	AnimationConstraints, whose C0 cannot be changed by scripts. This controller
+	therefore writes each joint's Transform during RunService.PreSimulation
+	(after the Animator has applied walk/idle animations), which works for BOTH
+	Motor6D and AnimationConstraint rigs and stacks on top of normal animations.
 
 	Replacing with authored animations (Milestone 7): add animation IDs to the
 	weapon definitions and play AnimationTracks in playAttack instead of building
@@ -25,16 +31,24 @@ local player = Players.LocalPlayer
 
 local AnimationController = {}
 
+-- Joint name -> the part that the joint MOVES (its child part).
+local JOINT_PARTS = {
+	RightShoulder = "RightUpperArm",
+	LeftShoulder = "LeftUpperArm",
+	Waist = "UpperTorso",
+}
 local JOINTS = { "RightShoulder", "LeftShoulder", "Waist" }
 local NEUTRAL = {}
 local MAX_DISTANCE = 220
+local RETRY_INTERVAL = 0.5
+local WARN_AFTER = 8
 
 local rad = math.rad
 local function angles(x, y, z)
 	return CFrame.Angles(rad(x or 0), rad(y or 0), rad(z or 0))
 end
 
--- Pose offsets are applied in each joint's C0 space.
+-- Pose offsets are applied in each joint's parent space (equivalent to C0 * offset).
 -- RightShoulder: +X raises the arm forward, Y swings it sideways.
 -- Waist: +Y twists the torso to the left, -X leans forward.
 local POSES = {
@@ -69,21 +83,54 @@ local POSES = {
 }
 
 local rigs = {} -- [Model] = rig
-local candidates = {} -- [Model] = true (tagged, waiting for joints to stream in)
+local candidates = {} -- [Model] = { nextTry, firstSeen, warned } (waiting for joints)
 
-local function getMotor(model, partName, motorName)
-	local part = model:FindFirstChild(partName)
-	local motor = part and part:FindFirstChild(motorName)
-	if motor and motor:IsA("Motor6D") then
-		return motor
+---------------------------------------------------------------------------
+-- Joint discovery (Motor6D or AnimationConstraint)
+---------------------------------------------------------------------------
+local function isJoint(instance)
+	return instance:IsA("Motor6D") or instance:IsA("AnimationConstraint")
+end
+
+local function childPartOf(joint)
+	if joint:IsA("Motor6D") then
+		return joint.Part1
+	end
+	local attachment = joint.Attachment1
+	return attachment and attachment.Parent
+end
+
+local function findJoint(model, jointName)
+	local part = model:FindFirstChild(JOINT_PARTS[jointName])
+	if not part then
+		return nil
+	end
+	local direct = part:FindFirstChild(jointName)
+	if direct and isJoint(direct) then
+		return direct
+	end
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if isJoint(descendant) and (descendant.Name == jointName or childPartOf(descendant) == part) then
+			return descendant
+		end
 	end
 	return nil
 end
 
+local function jointsValid(rig)
+	for _, name in ipairs(JOINTS) do
+		if not rig.joints[name].Parent then
+			return false
+		end
+	end
+	return true
+end
+
 local function restore(rig)
-	for name, motor in pairs(rig.motors) do
-		if motor.Parent then
-			motor.C0 = rig.base[name]
+	for _, name in ipairs(JOINTS) do
+		local joint = rig.joints[name]
+		if joint.Parent and rig.animBase[name] then
+			joint.Transform = rig.animBase[name]
 		end
 	end
 end
@@ -91,22 +138,21 @@ end
 local function getRig(model)
 	local rig = rigs[model]
 	if rig then
-		if rig.motors.RightShoulder.Parent and rig.motors.Waist.Parent then
+		if jointsValid(rig) then
 			return rig
 		end
 		rigs[model] = nil
 	end
-	local motors = {
-		RightShoulder = getMotor(model, "RightUpperArm", "RightShoulder"),
-		LeftShoulder = getMotor(model, "LeftUpperArm", "LeftShoulder"),
-		Waist = getMotor(model, "UpperTorso", "Waist"),
-	}
-	if not (motors.RightShoulder and motors.LeftShoulder and motors.Waist) then
-		return nil
-	end
-	rig = { model = model, motors = motors, base = {}, current = {}, timeline = nil }
+	local joints = {}
 	for _, name in ipairs(JOINTS) do
-		rig.base[name] = motors[name].C0
+		local joint = findJoint(model, name)
+		if not joint then
+			return nil
+		end
+		joints[name] = joint
+	end
+	rig = { model = model, joints = joints, current = {}, animBase = {}, applied = {}, timeline = nil }
+	for _, name in ipairs(JOINTS) do
 		rig.current[name] = CFrame.identity
 	end
 	rigs[model] = rig
@@ -114,6 +160,9 @@ local function getRig(model)
 	return rig
 end
 
+---------------------------------------------------------------------------
+-- Poses
+---------------------------------------------------------------------------
 local function poseValue(pose, joint)
 	return pose[joint] or CFrame.identity
 end
@@ -142,7 +191,6 @@ function AnimationController.playAttack(model, kind, direction, windup, recovery
 	local snapshot = table.clone(rig.current)
 	local windupPose = set.windup
 	if kind == "Heavy" then
-		-- Heavier wind-up: exaggerate the windup pose a little.
 		windupPose = {}
 		for _, joint in ipairs(JOINTS) do
 			windupPose[joint] = exaggerate(poseValue(set.windup, joint), 1.15)
@@ -158,6 +206,25 @@ function AnimationController.playAttack(model, kind, direction, windup, recovery
 			{ t = windup + recovery, pose = NEUTRAL },
 		},
 	}
+end
+
+-- Writes offset on top of whatever the Animator produced this frame.
+-- If the Animator did not touch the joint since our last write (no track
+-- affects it), reuse the stored base so offsets never accumulate.
+local function applyJoint(rig, name, offset)
+	local joint = rig.joints[name]
+	local current = joint.Transform
+	local base
+	local applied = rig.applied[name]
+	if applied ~= nil and current == applied then
+		base = rig.animBase[name] or CFrame.identity
+	else
+		base = current
+	end
+	rig.animBase[name] = base
+	local final = offset * base
+	joint.Transform = final
+	rig.applied[name] = final
 end
 
 local function stepRig(model, rig, dt, cameraPosition)
@@ -205,13 +272,16 @@ local function stepRig(model, rig, dt, cameraPosition)
 	end
 
 	for _, joint in ipairs(JOINTS) do
-		rig.motors[joint].C0 = rig.base[joint] * rig.current[joint]
+		applyJoint(rig, joint, rig.current[joint])
 	end
 end
 
+---------------------------------------------------------------------------
+-- Discovery & loop
+---------------------------------------------------------------------------
 local function onTagged(model)
 	if model:IsA("Model") then
-		candidates[model] = true
+		candidates[model] = { nextTry = 0, firstSeen = os.clock(), warned = false }
 	end
 end
 
@@ -224,6 +294,20 @@ local function onUntagged(model)
 	end
 end
 
+local function resolveCandidates(now)
+	for model, info in pairs(candidates) do
+		if not model.Parent then
+			candidates[model] = nil
+		elseif now >= info.nextTry then
+			info.nextTry = now + RETRY_INTERVAL
+			if not getRig(model) and not info.warned and now - info.firstSeen > WARN_AFTER then
+				info.warned = true
+				warn(("[AnimationController] No R15 shoulder/waist joints found on %s; combat poses disabled for it."):format(model:GetFullName()))
+			end
+		end
+	end
+end
+
 function AnimationController.init()
 	CollectionService:GetInstanceAddedSignal("Combatant"):Connect(onTagged)
 	CollectionService:GetInstanceRemovedSignal("Combatant"):Connect(onUntagged)
@@ -231,20 +315,19 @@ function AnimationController.init()
 		onTagged(model)
 	end
 
-	RunService.RenderStepped:Connect(function(dt)
-		for model in pairs(candidates) do
-			if not model.Parent then
-				candidates[model] = nil
-			else
-				getRig(model)
-			end
-		end
+	-- PreSimulation runs after the Animator has written this frame's Transforms.
+	RunService.PreSimulation:Connect(function(dt)
+		resolveCandidates(os.clock())
 		local cameraPosition = workspace.CurrentCamera.CFrame.Position
 		for model, rig in pairs(rigs) do
-			if not model.Parent or not rig.motors.RightShoulder.Parent or not rig.motors.Waist.Parent then
+			if not model.Parent or not jointsValid(rig) then
 				rigs[model] = nil
 			else
-				stepRig(model, rig, dt, cameraPosition)
+				local ok, err = pcall(stepRig, model, rig, dt, cameraPosition)
+				if not ok then
+					warn("[AnimationController] " .. tostring(err))
+					rigs[model] = nil
+				end
 			end
 		end
 	end)

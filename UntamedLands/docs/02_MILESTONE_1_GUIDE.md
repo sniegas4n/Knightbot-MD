@@ -158,6 +158,7 @@ Run each test and tick it off. **Studio → Test → Play** for solo; **Test →
 |---|---|---|
 | Characters spawn R6 / arms don't animate / hair floats | Avatar Type isn't R15 | Game Settings → Avatar → R15 |
 | Stuck on "..." after creating | `LoadCharacterWithHumanoidDescription` failed | Check Output for `[Character]` warnings; the code falls back to `LoadCharacter` |
+| Arms don't swing; Output says "No R15 shoulder/waist joints found" | Rig isn't R15 or uses unexpected joint names | Check Avatar Type is R15; send the warning text |
 | Preview says "Preview unavailable" | `CreateHumanoidModelFromDescription` failed (asset service hiccup) | Rejoin; check the Output warning |
 | Raiders slide without walking animation | Default animation IDs didn't load | Replace IDs in `NPCAnimator.AnimationIds` (see that file's header) |
 | Can't hit anything | Hitbox sees nothing: check that target parts have `CanQuery = true` | Don't set `CanQuery = false` on character body parts |

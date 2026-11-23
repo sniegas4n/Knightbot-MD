@@ -1,5 +1,15 @@
 # Development Log: Untamed Lands
 
+## 2026-11-23: Fix: arms did not swing during attacks (first play-test bug)
+
+**Reported:** no arm swing for any character (players or NPCs) when attacking.
+**Cause:** Roblox's Avatar Joint Upgrade (now live) builds R15 characters with `AnimationConstraint` joints instead of `Motor6D`. `AnimationController` only looked for `Motor6D`s, found none, and silently skipped every rig. Also, `C0` on the new joints cannot be changed by scripts, so the old approach could not work anyway.
+**Fix:** `AnimationController` now:
+- finds joints of either type (`Motor6D` or `AnimationConstraint`) by name, or by the part they move;
+- layers pose offsets onto each joint's `Transform` in `RunService.PreSimulation` (after the Animator), the method Roblox recommends for procedural animation. Offsets stack on walk/idle animations and can't accumulate frame to frame;
+- warns in Output if a combatant still has no usable joints after 8 seconds.
+**Status:** written, not yet run in Studio.
+
 ## 2026-11-23: Milestone 1 (Foundation) written
 
 **Summary:** Project analysis, architecture and roadmap documented (`01_PROJECT_ANALYSIS.md`). Milestone 1 implemented as a Rojo project: 37 Luau files (~5,900 lines), 1 server Script, 1 client LocalScript and everything else in ModuleScripts.
