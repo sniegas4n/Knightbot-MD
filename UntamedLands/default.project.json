@@ -1,0 +1,48 @@
+{
+  "name": "UntamedLands",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$path": "src/ReplicatedStorage/Shared"
+      }
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Server": {
+        "$path": "src/ServerScriptService/Server"
+      }
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "Client": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/Client"
+        }
+      },
+      "StarterCharacterScripts": {
+        "$className": "StarterCharacterScripts",
+        "$path": "src/StarterPlayer/StarterCharacterScripts"
+      }
+    },
+
+    "Players": {
+      "$className": "Players",
+      "$properties": {
+        "CharacterAutoLoads": false
+      }
+    },
+
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true
+      }
+    }
+  }
+}
