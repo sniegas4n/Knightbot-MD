@@ -108,6 +108,10 @@ GameConfig.Environment = {
 	StartClockTime = 8.5,
 }
 
+GameConfig.Debug = {
+	RunSelfTests = true, -- Studio only: automatic PASS/FAIL checks in Output on every Play
+}
+
 GameConfig.NPC = {
 	ThinkInterval = 0.2,
 	ActiveRange = 220, -- NPCs with no player inside this range go dormant

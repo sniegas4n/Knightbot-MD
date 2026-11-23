@@ -1,5 +1,12 @@
 # Development Log: Untamed Lands
 
+## 2026-11-23: Day-by-day plan adopted; Day 1 prepared
+
+- Attack-pose fix confirmed working by the project owner in Studio.
+- New way of working: one goal per day, tested before moving on (`LEARNING_PLAN.md`).
+- **Day 1 (`days/DAY_01.md`)**: added `Server/Debug/SelfTest`, 15 automatic Studio-only checks (config data, save validation/repair, name validation, terrain determinism, spawn, preview rig, dummies, and an end-to-end combat test of hit, block and parry). Enabled via `GameConfig.Debug.RunSelfTests`.
+- **Status:** written and statically checked; waiting for the Day 1 test report.
+
 ## 2026-11-23: Fix: arms did not swing during attacks (first play-test bug)
 
 **Reported:** no arm swing for any character (players or NPCs) when attacking.

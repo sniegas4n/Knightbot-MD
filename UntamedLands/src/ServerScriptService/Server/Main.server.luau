@@ -53,3 +53,10 @@ for _, service in ipairs(services) do
 end
 
 print("[UntamedLands] Server started")
+
+-- Automatic checks, Studio only (see Server/Debug/SelfTest).
+local RunService = game:GetService("RunService")
+local GameConfig = require(ReplicatedStorage.Shared.Config.GameConfig)
+if RunService:IsStudio() and GameConfig.Debug.RunSelfTests then
+	task.spawn(require(Server.Debug.SelfTest).run)
+end
