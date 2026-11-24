@@ -233,6 +233,12 @@ local function worldTests()
 			return count() >= wanted
 		end, 30)
 		expect(count() >= wanted, ("expected %d dummies, found %d"):format(wanted, count()))
+		for model, c in pairs(Registry.all()) do
+			if c.IsNPC and model:IsDescendantOf(workspace.NPCs) then
+				-- Anchored roots break upgraded R15 joints on clients (no attack poses).
+				expect(not c.Root.Anchored, model.Name .. " has an anchored root part")
+			end
+		end
 	end)
 end
 

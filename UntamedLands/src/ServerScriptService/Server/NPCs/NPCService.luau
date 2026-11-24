@@ -93,18 +93,22 @@ local function spawnNPC(spawnPoint)
 	local ground = WorldGenService.getSurfaceHeight(x, z)
 	local home = Vector3.new(x, ground, z)
 	local hipOffset = humanoid.HipHeight + root.Size.Y / 2
-	model:PivotTo(CFrame.new(home + Vector3.new(0, hipOffset + 0.5, 0)) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0))
+	local homeCFrame = CFrame.new(home + Vector3.new(0, hipOffset + 0.5, 0)) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+	model:PivotTo(homeCFrame)
 
+	-- Dummies are NOT anchored: an anchored root breaks the joints of
+	-- upgraded (AnimationConstraint) rigs on clients. Instead they cannot walk
+	-- or jump, and thinkDummy() puts them back if they get shoved away.
 	local immobile = template.behavior == "Dummy"
 	if immobile then
-		root.Anchored = true
+		humanoid.WalkSpeed = 0
+		humanoid.UseJumpPower = false
+		humanoid.JumpHeight = 0
 	end
 	model.Parent = npcFolder
-	if not immobile then
-		pcall(function()
-			root:SetNetworkOwner(nil) -- server simulates NPC physics
-		end)
-	end
+	pcall(function()
+		root:SetNetworkOwner(nil) -- the server simulates NPC physics, never a player
+	end)
 
 	local c = Combatant.new(model, humanoid, {
 		stats = buildStats(template),
@@ -124,6 +128,7 @@ local function spawnNPC(spawnPoint)
 		root = root,
 		combatant = c,
 		home = home,
+		homeCFrame = homeCFrame,
 		animator = NPCAnimator.new(humanoid),
 		nextAttack = 0,
 		blockUntil = 0,
@@ -172,6 +177,11 @@ end
 local function thinkDummy(npc, now)
 	local c = npc.combatant
 	local humanoid = npc.humanoid
+	-- Tether: if players shove the dummy more than 3 studs, put it back.
+	if (npc.root.Position - npc.homeCFrame.Position).Magnitude > 3 then
+		npc.model:PivotTo(npc.homeCFrame)
+		npc.root.AssemblyLinearVelocity = Vector3.zero
+	end
 	if humanoid.Health < humanoid.MaxHealth and now - c.LastDamagedAt > (npc.template.regenDelay or 4) then
 		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + humanoid.MaxHealth * 0.25)
 	end

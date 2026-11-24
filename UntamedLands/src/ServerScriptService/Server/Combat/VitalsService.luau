@@ -39,7 +39,9 @@ local stateSpeedMultiplier = {
 
 local function onRegistered(c)
 	c.Humanoid.UseJumpPower = false
-	c.Humanoid.JumpHeight = MOVE.JumpHeight
+	if not c.Immobile then
+		c.Humanoid.JumpHeight = MOVE.JumpHeight
+	end
 	c.Humanoid.StateChanged:Connect(function(_, newState)
 		if newState == Enum.HumanoidStateType.Jumping then
 			c:spendStamina(STAMINA.JumpCost, true)

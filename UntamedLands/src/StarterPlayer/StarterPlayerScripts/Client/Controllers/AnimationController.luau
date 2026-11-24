@@ -294,6 +294,26 @@ local function onUntagged(model)
 	end
 end
 
+-- Describes what a rig actually contains, so a warning tells us WHY it failed.
+local function describeRig(model)
+	local missing, counts = {}, {}
+	for _, name in ipairs(JOINTS) do
+		if not model:FindFirstChild(JOINT_PARTS[name]) then
+			table.insert(missing, JOINT_PARTS[name])
+		end
+	end
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("JointInstance") or descendant:IsA("Constraint") then
+			counts[descendant.ClassName] = (counts[descendant.ClassName] or 0) + 1
+		end
+	end
+	local parts = {}
+	for className, n in pairs(counts) do
+		table.insert(parts, className .. " x" .. n)
+	end
+	return ("missing parts: [%s]; joints present: [%s]"):format(table.concat(missing, ", "), table.concat(parts, ", "))
+end
+
 local function resolveCandidates(now)
 	for model, info in pairs(candidates) do
 		if not model.Parent then
@@ -302,7 +322,10 @@ local function resolveCandidates(now)
 			info.nextTry = now + RETRY_INTERVAL
 			if not getRig(model) and not info.warned and now - info.firstSeen > WARN_AFTER then
 				info.warned = true
-				warn(("[AnimationController] No R15 shoulder/waist joints found on %s; combat poses disabled for it."):format(model:GetFullName()))
+				warn(("[AnimationController] No R15 shoulder/waist joints found on %s; combat poses disabled for it. %s"):format(
+					model:GetFullName(),
+					describeRig(model)
+				))
 			end
 		end
 	end

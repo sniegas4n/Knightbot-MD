@@ -1,5 +1,18 @@
 # Development Log: Untamed Lands
 
+## 2026-11-24: Day 1 test run: 15/15 self-tests passed; thrall pose fix
+
+**Result:** `[SelfTest] 15/15 checks passed`. The world generated 256 chunks in 10.6 s (spawn area ready in 6.5 s).
+**Expected warnings (not bugs):** DataStore 403 (Studio API access off, so temporary data is used; covered on Day 3); Roblox Assistant plugin version notice (restart Studio); `rbxassetid://203785492` asset type mismatch (not referenced by our code; engine/plugin side).
+**Bug:** client warned "No R15 shoulder/waist joints found" on both Sparring Thralls, so they had no attack/block poses.
+**Likely cause:** they were the only rigs with an anchored HumanoidRootPart (raiders, unanchored, were fine). Anchoring conflicts with the upgraded AnimationConstraint joints.
+**Fix:**
+- Thralls are no longer anchored: WalkSpeed 0, JumpHeight 0, server network owner, and a tether that puts them back if shoved more than 3 studs.
+- VitalsService no longer re-enables jumping on immobile combatants.
+- The AnimationController warning now lists missing parts and the joint classes present, for diagnosis if this happens again.
+- The SelfTest dummy check now fails if any NPC root is anchored.
+**Status:** written and statically checked; waiting for re-test.
+
 ## 2026-11-23: Day-by-day plan adopted; Day 1 prepared
 
 - Attack-pose fix confirmed working by the project owner in Studio.
