@@ -320,6 +320,15 @@ local function resolveCandidates(now)
 			candidates[model] = nil
 		elseif now >= info.nextTry then
 			info.nextTry = now + RETRY_INTERVAL
+			-- With StreamingEnabled the model can exist on this client before its
+			-- body parts do (e.g. while you're in character creation). That is
+			-- normal, so only start the warning timer once the parts have arrived.
+			local streamedIn = model:FindFirstChild("UpperTorso")
+				and model:FindFirstChild("RightUpperArm")
+				and model:FindFirstChild("LeftUpperArm")
+			if not streamedIn then
+				info.firstSeen = now
+			end
 			if not getRig(model) and not info.warned and now - info.firstSeen > WARN_AFTER then
 				info.warned = true
 				warn(("[AnimationController] No R15 shoulder/waist joints found on %s; combat poses disabled for it. %s"):format(
@@ -345,6 +354,11 @@ function AnimationController.init()
 		for model, rig in pairs(rigs) do
 			if not model.Parent or not jointsValid(rig) then
 				rigs[model] = nil
+				-- Parts streamed out but the model is still here: watch for them
+				-- to stream back in, otherwise this NPC would never animate again.
+				if model.Parent and CollectionService:HasTag(model, "Combatant") then
+					onTagged(model)
+				end
 			else
 				local ok, err = pcall(stepRig, model, rig, dt, cameraPosition)
 				if not ok then

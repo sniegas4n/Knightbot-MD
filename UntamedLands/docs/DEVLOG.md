@@ -1,5 +1,15 @@
 # Development Log: Untamed Lands
 
+## 2026-11-24: Day 1 re-test: 15/15 again; pose warning was a streaming false alarm
+
+**Result:** `[SelfTest] 15/15 checks passed`.
+**Finding:** the new diagnostic showed the NPC models had *no body parts at all* on the client ("missing parts: RightUpperArm, LeftUpperArm, UpperTorso; joints present: none"). Cause: StreamingEnabled. While the player sits in character creation (every Play in Studio, because saving is off) there is no character, so nearby parts don't stream in, and the 8-second warning fired. The earlier "anchored root" diagnosis was most likely wrong. Un-anchoring the thralls is kept (harmless, and better for physically simulated joints).
+**Fixes (AnimationController):**
+- The warning timer only starts once the body parts have streamed in (no false alarms).
+- **Real bug fixed:** if an NPC's parts streamed out and back in, it was never re-watched and its poses stopped permanently. It is now re-added to the watch list.
+**Lesson:** with StreamingEnabled, client code must expect models to arrive without their parts, and parts to come and go.
+**Status:** statically checked; waiting for in-game confirmation that NPC block/attack poses show.
+
 ## 2026-11-24: Day 1 test run: 15/15 self-tests passed; thrall pose fix
 
 **Result:** `[SelfTest] 15/15 checks passed`. The world generated 256 chunks in 10.6 s (spawn area ready in 6.5 s).
@@ -94,4 +104,5 @@
 | K6 | Low | NPC walk/run animation IDs are Roblox's default R15 IDs; they may need replacing (see `NPCAnimator`). | Replace with authored animations in M7 |
 | K7 | Low | Character creation can't be repeated (one character per account). | Add "abandon character" flow later (M8) |
 | K8 | Low | `AttackStarted` uses the attacker's distance to each player; players outside 250 studs never see the swing (intended), but a lot of spectators will multiply remote traffic. | Fine at 20 players; review in M6 |
+| K10 | Low | Default StreamingEnabled settings stream nothing nearby while the player is in character creation (no character). Harmless now, but anything shown behind the creation screen later must account for it. | Revisit if we add a world backdrop to the creation screen |
 | K9 | Info | HumanoidDescription scale values outside Roblox's avatar ranges may be clamped by the engine, reducing body variety. | Verify in play-test; adjust ranges |
