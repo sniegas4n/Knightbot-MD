@@ -209,17 +209,17 @@ footer b{font-family:var(--display);color:var(--fg);letter-spacing:.06em}
 
   <section class="sec" aria-labelledby="t-sub">
     <div class="sec-head">
-      <div><div class="eyebrow">Matières</div><h2 id="t-sub">Huit matières, une priorité</h2></div>
+      <div><div class="eyebrow">Matières</div><h2 id="t-sub">Objectif du trimestre : 16 de moyenne</h2></div>
     </div>
     <div class="subs">
-      <div class="sub star"><div class="ic">∑</div><h3>Mathématiques</h3><p>Objectif</p><div class="goal">16 / 20</div></div>
-      <div class="sub"><div class="ic">€</div><h3>SES</h3><p>Dissertation · étude de documents</p></div>
-      <div class="sub"><div class="ic">Φ</div><h3>Philosophie</h3><p>Problématique · plan · introduction</p></div>
-      <div class="sub"><div class="ic">Fr</div><h3>Français</h3><p>Commentaire · dissertation</p></div>
-      <div class="sub"><div class="ic">HG</div><h3>Histoire-géo</h3><p>Dates · croquis · documents</p></div>
-      <div class="sub"><div class="ic">En</div><h3>Anglais</h3><p>Coaching mer. et sam. à 20h</p></div>
-      <div class="sub"><div class="ic">Es</div><h3>Espagnol</h3><p>LV2 · vocabulaire · expression</p></div>
-      <div class="sub"><div class="ic">&lt;/&gt;</div><h3>Informatique</h3><p>Mardi 14h20</p></div>
+      <div class="sub star"><div class="ic">HG</div><h3>Histoire-géo</h3><p>Priorité 9 · coef 3 · rédaction</p><div class="goal">1<sup>re</sup></div></div>
+      <div class="sub star"><div class="ic">En</div><h3>Anglais</h3><p>Priorité 9 · coef 3 · coaching mer. et sam. 20h</p></div>
+      <div class="sub star"><div class="ic">Fr</div><h3>Français</h3><p>Priorité 8 · coef 4 · rédaction</p></div>
+      <div class="sub"><div class="ic">∑</div><h3>Mathématiques</h3><p>Priorité 6 · coef 3 · objectif 16/20</p></div>
+      <div class="sub"><div class="ic">Es</div><h3>Espagnol</h3><p>Priorité 6 · coef 3</p></div>
+      <div class="sub"><div class="ic">Φ</div><h3>Philosophie</h3><p>Priorité 6 · coef 2 · rédaction</p></div>
+      <div class="sub"><div class="ic">€</div><h3>SES</h3><p>Priorité 4 · coef 4 · matière forte, à maintenir</p></div>
+      <div class="sub"><div class="ic">&lt;/&gt;</div><h3>Informatique</h3><p>Priorité 2 · coef 1</p></div>
     </div>
   </section>
 
@@ -248,8 +248,8 @@ const S={1:{n:"Lundi",c:["SES","Maths","Anglais","Espagnol"]},
 6:{n:"Samedi",c:[],x:[["20h00","Coaching d'anglais"]]},
 0:{n:"Dimanche",c:[]}};
 const TIPS={1:"Après les maths du jour, refais un exercice court du chapitre en cours pendant que c'est frais.",
-2:"Journée chargée : une seule révision courte le soir (J+1 ou J+3 en attente).",
-3:"Coaching d'anglais à 20h. Garde une petite séance de maths avant, pas après.",
+2:"Journée lourde : seulement les devoirs de demain et 10 min de flashcards. Au lit à 22h30.",
+3:"Coaching d'anglais à 20h. Séance vers 17h, finie avant 19h30.",
 4:"<strong>Matinée libre :</strong> le meilleur créneau de la semaine pour un vrai bloc de maths ou une dissertation.",
 5:"Prépare le week-end : note ce qui reste fragile pour le « BILAN DE LA SEMAINE ».",
 6:"Un bloc le matin, une révision espacée l'après-midi, coaching d'anglais à 20h.",
@@ -285,11 +285,16 @@ requestAnimationFrame(()=>setTimeout(()=>document.getElementById("yearbar").styl
 document.getElementById("yeartxt").textContent=`${Math.round(pct)} % de l'année de Terminale écoulée`;
 
 // commands
-const C=[["QU'EST-CE QUE JE RÉVISE AUJOURD'HUI ?","1 à 3 tâches courtes : révisions dues, erreurs récentes, maths."],
+const C=[["QU'EST-CE QUE JE FAIS AUJOURD'HUI ?","1 à 3 tâches : devoirs dus, matière prioritaire, révisions dues."],
+["NOUVEAU DEVOIR","Matière, à faire, pour le… Ajouté à devoirs.md."],
+["NOUVELLE NOTE","Matière, note, type. Moyenne et priorités recalculées."],
+["OBJECTIF 16","Ma moyenne réelle, l'écart et où gagner des points."],
+["FEUILLE BLANCHE","J'envoie ce que j'ai écrit cours fermé, KB Cloud dit ce qui manque."],
 ["MODE EXAMEN","Un sujet type bac, chronométré, sans aide. Correction après."],
 ["ÉTAT DE MATHS","Chapitres, fiches, TD et statuts de maîtrise."],
 ["ÉTAT DU CHAPITRE [nom]","Comprendre / Savoir / Savoir-faire pour un chapitre."],
-["BILAN DE LA SEMAINE","Ce qui a été fait, ce qui reste fragile, trois priorités."],
+["POINT DE LA SEMAINE","Dimanche, 10 min : 3 questions, puis le bilan."],
+["MODE VACANCES","Blocs le matin, devoirs longs avancés tôt."],
 ["FIN DE SÉANCE","Mise à jour du registre, de l'état, des erreurs et des révisions."]];
 const wrap=document.getElementById("cmds");
 C.forEach(([c,d])=>{const b=document.createElement("button");b.className="cmd";b.type="button";
